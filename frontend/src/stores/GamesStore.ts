@@ -19,8 +19,6 @@ export class GamesStore {
 
   constructor() {
     makeAutoObservable(this);
-
-    this.init();
   }
 
   get isLoading() {
@@ -54,8 +52,13 @@ export class GamesStore {
     };
   };
 
-  init = async () => {
-    console.log(`init GamesStore`);
+  loadGames = async () => {
+    if (this.isLoading) {
+      return;
+    }
+
+    console.log(`loadGames`);
+
     try {
       this.loadingState.loading();
 
@@ -119,10 +122,18 @@ export class GamesStore {
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      this.resetData();
       this.loadingState.success();
     } catch (error) {
       console.log(error);
       this.loadingState.error();
     }
+  };
+
+  resetData = () => {
+    this.setValue('name', '');
+    this.setValue('year', '');
+    this.setValue('author', '');
+    this.errors = null;
   };
 }

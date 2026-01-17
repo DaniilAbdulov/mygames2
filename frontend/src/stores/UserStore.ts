@@ -148,7 +148,6 @@ export class UserStore {
   };
 
   resetData = () => {
-    this.formValues = {};
     this.setValue('phone', '');
     this.setValue('password', '');
     this.errors = null;

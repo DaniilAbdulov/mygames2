@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {observer} from 'mobx-react-lite';
 import {useStores} from '../../stores/useStores';
 import {Loader} from '../ui/Loader';
@@ -6,7 +6,11 @@ import {GameItem} from './GameItem';
 
 export const GamesList: React.FC = observer(() => {
   const {gamesStore} = useStores();
-  const {games, isLoading} = gamesStore;
+  const {games, isLoading, loadGames} = gamesStore;
+
+  useEffect(() => {
+    loadGames();
+  }, []);
 
   if (isLoading) {
     return <Loader fullScreen />;
