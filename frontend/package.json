@@ -1,0 +1,29 @@
+{
+  "name": "@mygames/frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint src --ext .ts,.tsx",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.1",
+    "@mui/icons-material": "7.3.6",
+    "@mui/material": "7.3.6",
+    "mobx": "6.15.0",
+    "mobx-react-lite": "4.1.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-router-dom": "6.20.0"
+  },
+  "devDependencies": {
+    "@types/react": "18.2.45",
+    "@types/react-dom": "18.2.18",
+    "@vitejs/plugin-react": "4.7.0",
+    "typescript": "5.3.3",
+    "vite": "5.4.21"
+  }
+}

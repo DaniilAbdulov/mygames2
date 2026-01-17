@@ -1,0 +1,176 @@
+book-library/                          # Корневая папка проекта
+├── 📁 auth-service/                   # Сервис авторизации
+│   ├── 📁 src/
+│   │   ├── index.ts                  # Основной файл сервиса (регистрация, логин, JWT)
+│   │   ├── middleware/               # Middleware (валидация, обработка ошибок)
+│   │   │   └── auth.middleware.ts
+│   │   ├── controllers/              # Контроллеры
+│   │   │   └── auth.controller.ts
+│   │   ├── services/                 # Бизнес-логика
+│   │   │   └── auth.service.ts
+│   │   ├── types/                    # TypeScript интерфейсы
+│   │   │   └── user.types.ts
+│   │   └── utils/                    # Утилиты (хеширование, JWT)
+│   │       └── crypto.util.ts
+│   ├── Dockerfile                    # Многоступенчатая сборка
+│   ├── Dockerfile.dev                # Для разработки
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── .dockerignore
+│   ├── .env.example                  # Пример переменных окружения
+│   └── 📁 tests/                     # Тесты
+│       └── auth.test.ts
+│
+├── 📁 books-service/                  # Сервис управления книгами
+│   ├── 📁 src/
+│   │   ├── index.ts                  # Основной файл (CRUD книг)
+│   │   ├── middleware/
+│   │   │   ├── auth.middleware.ts    # Проверка JWT
+│   │   │   └── validation.middleware.ts
+│   │   ├── controllers/
+│   │   │   └── books.controller.ts
+│   │   ├── services/
+│   │   │   └── books.service.ts
+│   │   ├── repository/               # Работа с базой данных
+│   │   │   └── books.repository.ts
+│   │   ├── types/
+│   │   │   └── book.types.ts
+│   │   └── database/                 # Конфигурация PostgreSQL
+│   │       ├── connection.ts
+│   │       └── migrations/
+│   │           └── 001_init.sql      SQL-миграции
+│   ├── init.sql                      # SQL для инициализации БД
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── 📁 tests/
+│       └── books.test.ts
+│
+├── 📁 gateway/                        # Самописный API Gateway (Node.js)
+│   ├── 📁 src/
+│   │   ├── index.ts                  # Основной файл Gateway
+│   │   ├── middleware/
+│   │   │   ├── rate-limiter.middleware.ts
+│   │   │   ├── logger.middleware.ts
+│   │   │   └── auth.middleware.ts    # Проверка токенов
+│   │   ├── routes/                   # Конфигурация маршрутизации
+│   │   │   └── routes.config.ts
+│   │   └── proxies/                  # Настройки proxy
+│   │       ├── auth.proxy.ts
+│   │       └── books.proxy.ts
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── 📁 tests/
+│       └── gateway.test.ts
+│
+├── 📁 frontend/                       # React приложение
+│   ├── 📁 public/
+│   │   ├── index.html
+│   │   └── favicon.ico
+│   ├── 📁 src/
+│   │   ├── App.tsx                   # Основной компонент
+│   │   ├── index.tsx
+│   │   ├── 📁 components/            # React компоненты
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── BookList.tsx
+│   │   │   └── AddBookForm.tsx
+│   │   ├── 📁 pages/                 # Страницы приложения
+│   │   │   ├── LoginPage.tsx
+│   │   │   └── LibraryPage.tsx
+│   │   ├── 📁 services/              # API клиенты
+│   │   │   ├── api.client.ts         # Настройка axios
+│   │   │   ├── auth.api.ts
+│   │   │   └── books.api.ts
+│   │   ├── 📁 stores/                # State management (Zustand/Redux)
+│   │   │   └── auth.store.ts
+│   │   ├── 📁 types/                 # TypeScript типы
+│   │   │   ├── book.types.ts
+│   │   │   └── user.types.ts
+│   │   └── 📁 utils/                 # Утилиты
+│   │       └── token.util.ts
+│   ├── Dockerfile                    # Многоступенчатая сборка с Nginx
+│   ├── Dockerfile.dev                # Для разработки с hot reload
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── .env.example                  # REACT_APP_API_URL=http://localhost:3000
+│   └── nginx.conf                    # Конфигурация Nginx для production
+│
+├── 📁 k8s/                           # Kubernetes манифесты
+│   ├── 01-namespace.yaml             # Namespace book-library
+│   ├── 02-configs-secrets.yaml       # ConfigMap и Secrets
+│   ├── 📁 03-databases/              # Базы данных
+│   │   ├── postgres.yaml             # Deployment + Service + PVC
+│   │   ├── redis.yaml
+│   │   └── init-job.yaml             Job для инициализации БД
+│   ├── 📁 04-services/               # Наши сервисы
+│   │   ├── auth/
+│   │   │   ├── deployment.yaml
+│   │   │   ├── service.yaml
+│   │   │   └── hpa.yaml              Horizontal Pod Autoscaler
+│   │   ├── books/
+│   │   │   ├── deployment.yaml
+│   │   │   └── service.yaml
+│   │   ├── gateway/
+│   │   │   ├── deployment.yaml
+│   │   │   ├── service.yaml
+│   │   │   └── hpa.yaml
+│   │   └── frontend/
+│   │       ├── deployment.yaml
+│   │       └── service.yaml
+│   ├── 📁 05-ingress/                # NGINX Ingress (вариант 1)
+│   │   ├── ingress.yaml              # Основной Ingress
+│   │   └── ingress-class.yaml        # Класс Ingress
+│   ├── 📁 06-traefik/                # Traefik (вариант 2)
+│   │   ├── traefik-values.yaml       # Values для Helm
+│   │   ├── ingressroute.yaml         # IngressRoute CRD
+│   │   └── middlewares.yaml          # Middleware для Traefik
+│   ├── 📁 07-monitoring/             # Мониторинг
+│   │   ├── prometheus.yaml           # Prometheus
+│   │   ├── grafana.yaml              # Grafana
+│   │   └── servicemonitors/          # ServiceMonitors
+│   └── 📁 overlays/                  # Kustomize окружения
+│       ├── 📁 dev/                   # Разработка
+│       │   ├── kustomization.yaml
+│       │   └── patch-replicas.yaml   # 1 replica для dev
+│       └── 📁 prod/                  # Продакшен
+│           ├── kustomization.yaml
+│           ├── patch-replicas.yaml   # 2+ replicas
+│           └── patch-resources.yaml  # Больше ресурсов
+│
+├── 📁 infrastructure/                 # Инфраструктурные скрипты
+│   ├── cert-manager/                 # SSL сертификаты
+│   ├── external-dns/                 # Автоматическое обновление DNS
+│   └── velero/                       # Бэкапы
+│
+├── 📁 scripts/                       # Вспомогательные скрипты
+│   ├── build-all.sh                  # Сборка всех образов
+│   ├── push-to-registry.sh           # Пуш в registry
+│   ├── deploy-dev.sh                 # Деплой в dev окружение
+│   ├── deploy-prod.sh                # Деплой в prod
+│   └── teardown.sh                   # Очистка всего
+│
+├── docker-compose.yml                # Для локальной разработки
+├── docker-compose.prod.yml           # Production-like compose
+├── docker-compose.test.yml           # Для тестов
+│
+├── Makefile                          # Упрощенные команды
+├── .github/                          # CI/CD
+│   └── 📁 workflows/
+│       ├── test.yaml                 # Запуск тестов
+│       ├── build.yaml                # Сборка образов
+│       └── deploy.yaml               # Деплой в k8s
+│
+├── README.md                         # Основная документация
+├── ARCHITECTURE.md                   # Описание архитектуры
+├── DEPLOYMENT.md                     # Инструкции по деплою
+├── API_DOCS.md                       # Документация API
+├── .gitignore
+├── .dockerignore
+├── .env.example                      # Глобальные переменные окружения
+└── 📁 docs/                          # Дополнительная документация
+    ├── diagrams/                     # Архитектурные схемы
+    │   ├── architecture.puml         # PlantUML схема
+    │   └── k8s-setup.png
+    ├── api-examples.http             # Примеры запросов для VS Code REST Client
+    └── performance-review-notes.md   # Что показывать на ревью
