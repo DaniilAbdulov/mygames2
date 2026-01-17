@@ -139,6 +139,11 @@ export class UserStore {
       this.loadingState.loading();
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      runInAction(() => {
+        this.user = null;
+        this.isAuthenticated = false;
+      });
+
       this.loadingState.success();
     } catch (error) {
       console.log(error);
