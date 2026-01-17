@@ -12,6 +12,7 @@ import {GamesPage} from './pages/private/GamesPage';
 import {LoginPage} from './pages/public/LoginPage';
 
 import {useStores} from './stores/useStores';
+import {AddGamePage} from './pages/private/AddGamePage';
 
 const theme = createTheme({
   palette: {
@@ -68,7 +69,11 @@ const AppContent: React.FC = observer(() => {
 
         <Route
           path="/games/add"
-          element={<div style={{padding: '20px'}}>{'hello'}</div>}
+          element={
+            <div style={{padding: '20px'}}>
+              <AddGamePage />
+            </div>
+          }
         />
 
         <Route path="*" element={<Navigate to="/" replace />} />

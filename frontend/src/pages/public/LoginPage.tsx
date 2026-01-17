@@ -74,7 +74,7 @@ export const LoginPage: React.FC = observer(() => {
                 mt: 1,
               }}
             >
-              {userStore.isLoading ? 'Вход...' : 'Войти'}
+              {isLoading ? 'Вход...' : 'Войти'}
             </Button>
           </Box>
         </form>

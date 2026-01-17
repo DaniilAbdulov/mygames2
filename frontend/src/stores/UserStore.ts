@@ -57,7 +57,7 @@ export class UserStore {
   };
 
   init = async () => {
-    console.log(`init`);
+    console.log(`init UserStore`);
     this.userStoreloadingState.loading();
 
     try {
@@ -85,11 +85,6 @@ export class UserStore {
   _validate = () => {
     const {phone, password} = this.formValues;
 
-    console.log({
-      phone,
-      password,
-    });
-
     if (!phone) {
       this.setError('phone');
     }
@@ -107,11 +102,7 @@ export class UserStore {
 
   login = async () => {
     console.log(`login`);
-    if (this.isLoading) {
-      return;
-    }
-
-    if (!this._validate()) {
+    if (this.isLoading || !this._validate()) {
       return;
     }
 
