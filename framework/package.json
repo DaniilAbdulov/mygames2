@@ -1,0 +1,20 @@
+{
+  "name": "framework-service",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "Service framework for microservices",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/cors": "11.2.0",
+    "@fastify/sensible": "6.0.0",
+    "fastify": "5.0.0",
+    "ioredis": "5.9.1"
+  }
+}
