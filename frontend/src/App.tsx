@@ -66,6 +66,11 @@ const AppContent: React.FC = observer(() => {
           }
         />
 
+        <Route
+          path="/games/add"
+          element={<div style={{padding: '20px'}}>{'hello'}</div>}
+        />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

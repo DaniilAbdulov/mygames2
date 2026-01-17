@@ -63,10 +63,10 @@ export class UserStore {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const user = null;
-      // const user = {
-      //   fullName: 'Абдулов Даниил',
-      // };
+      // const user = null;
+      const user = {
+        fullName: 'Абдулов Даниил',
+      };
 
       if (user) {
         runInAction(() => {
