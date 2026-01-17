@@ -19,7 +19,7 @@ export class UserStore {
   loadingState = new DataLoadingStore();
   userStoreloadingState = new DataLoadingStore();
 
-  constructor(private rootStore: any) {
+  constructor() {
     makeAutoObservable(this);
 
     this.init();
