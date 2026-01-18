@@ -1,0 +1,24 @@
+{
+  "name": "books-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -w -p tsconfig.build.json",
+    "start": "node build/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@mygames/framework-service": "file:../framework",
+    "knex": "3.1.0",
+    "pg": "8.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "typescript": "5.9.3"
+  }
+}

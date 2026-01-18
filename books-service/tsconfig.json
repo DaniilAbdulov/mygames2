@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "outDir": "./build",
+    "rootDir": "./",
+    "alwaysStrict": true,
+    "allowJs": false,
+    "target": "es2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "removeComments": true,
+    "disableSizeLimit": true,
+    "preserveConstEnums": true,
+    "sourceMap": false,
+    "listFiles": true,
+    "maxNodeModuleJsDepth": 0,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node"],
+    "lib": [
+      "ES2015",
+      "ES2016",
+      "ES2017",
+      "ES2018",
+      "ES2019",
+      "ES2020",
+      "ESNext"
+    ],
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedParameters": true
+  },
+  "exclude": ["./build", "./node_modules", "./migrations", "knexfile.ts"]
+}

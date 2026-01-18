@@ -1,0 +1,42 @@
+Title:
+  $ref: 'shared://notemptystring'
+  description: Название
+
+Year:
+  $ref: 'shared://positiveinteger'
+  description: Год выхода
+
+Author:
+  $ref: 'shared://notemptystring'
+  description: Автор
+
+Game:
+  type: object
+  description: Игра
+  properties:
+    id:
+      $ref: 'shared://positiveinteger'
+      description: ID
+    title:
+      $ref: '#/Title'
+    year:
+      $ref: '#/Year'
+    author:
+      $ref: '#/Author'
+
+Games:
+  type: array
+  description: Массив игр
+  items:
+    $ref: '#/Game'
+
+AddGameBody:
+  type: object
+  description: Тело запроса для добавления игры
+  properties:
+    title:
+      $ref: '#/Title'
+    year:
+      $ref: '#/Year'
+    author:
+      $ref: '#/Author'
