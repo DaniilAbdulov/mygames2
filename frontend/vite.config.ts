@@ -4,11 +4,8 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      '@bookly/enums': path.resolve(__dirname, '../../packages/enums'),
-      '@bookly/types': path.resolve(__dirname, '../../packages/types'),
-    },
+  define: {
+    'process.env': process.env,
   },
   server: {
     port: 5173,

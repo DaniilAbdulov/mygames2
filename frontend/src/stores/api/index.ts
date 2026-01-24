@@ -1,0 +1,1 @@
+export {gamesService} from './games';

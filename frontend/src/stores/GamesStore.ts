@@ -1,5 +1,6 @@
 import {makeAutoObservable, runInAction} from 'mobx';
 import {DataLoadingStore} from './shared/DataLoadingStore';
+import {gamesService} from './api';
 
 export type Game = {
   id: number;
@@ -61,6 +62,10 @@ export class GamesStore {
 
     try {
       this.loadingState.loading();
+
+      const games = await gamesService.getGames({limit: 10, offset: 0});
+
+      console.log(games);
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
