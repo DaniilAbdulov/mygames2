@@ -1,0 +1,23 @@
+get:
+  tags:
+    - users
+  summary: Получить пользователя
+  description: Получить пользователя
+  x-router-controller: users
+  operationId: getUser
+  parameters:
+    - in: query
+      name: userId
+      required: true
+      description: userId
+      schema:
+        $ref: 'shared://positiveinteger'
+  responses:
+    200:
+      description: Пользователь
+      content:
+        application/json:
+          schema:
+            description: Пользователь
+            $ref: './components.yml#/User'
+            nullable: true
