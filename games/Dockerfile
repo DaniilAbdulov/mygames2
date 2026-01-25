@@ -6,7 +6,12 @@ COPY package*.json ./
 COPY tsconfig.json ./
 COPY tsconfig.build.json ./
 
-RUN npm ci
+RUN --mount=type=secret,id=npmrc \
+    cat /run/secrets/npmrc > /root/.npmrc && \
+    cat /run/secrets/npmrc > .npmrc && \
+    npm ci
+
+RUN rm -f .npmrc
 
 COPY . .
 
