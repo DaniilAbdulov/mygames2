@@ -1,21 +1,14 @@
-const Service = require('@mygames/framework-service');
+import {createService} from '@daniilabdulov/fastify-auto';
+import {getUser} from './routes';
 import {development} from './config';
 
-const config = Service.Config.add('development', {
-  db: {connection: development.connect.connection},
+const service = createService({
+  name: 'users-service',
+  port: 3002,
+  prefix: '/api/v1',
+  routes: [getUser],
+  autoDocs: true,
+  dbConnection: development.connect,
 });
 
-async function start() {
-  try {
-    const service = new Service(config);
-    await service.initialize();
-
-    // Сервер теперь запущен
-    console.log('Service initialized and server is running');
-  } catch (error) {
-    console.error('Failed to start service:', error);
-    process.exit(1);
-  }
-}
-
-start();
+service.initialize().catch(console.error);

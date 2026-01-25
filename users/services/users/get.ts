@@ -1,3 +1,5 @@
+import {ServiceExtensions} from '@daniilabdulov/fastify-auto/dist/types/extensions';
+
 const fields = [
   'id',
   'firstName',
@@ -7,10 +9,17 @@ const fields = [
   'created_at',
 ];
 
-export const get = async ({userId}: {userId: number}, ext: any) => {
+export const get = async (userId: number, ext: ServiceExtensions) => {
   const {pg} = ext;
 
-  const [user] = await pg.query('users').select(fields).where({id: userId});
+  const [user] = await pg('users').select(fields).where({id: userId});
 
-  return user ?? null;
+  if (user) {
+    return {
+      ...user,
+      created_at: new Date(user.created_at).toISOString(),
+    };
+  }
+
+  return null;
 };
