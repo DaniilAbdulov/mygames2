@@ -1,19 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Service = require('@mygames/framework-service');
+const fastify_auto_1 = require("@daniilabdulov/fastify-auto");
+const routes_1 = require("./routes");
 const config_1 = require("./config");
-const config = Service.Config.add('development', {
-    db: { connection: config_1.development.connect.connection },
+const service = (0, fastify_auto_1.createService)({
+    name: 'games-service',
+    port: 3001,
+    prefix: '/api/v1',
+    routes: [routes_1.getGames, routes_1.createGame],
+    autoDocs: true,
+    dbConnection: config_1.development.connect,
 });
-async function start() {
-    try {
-        const service = new Service(config);
-        await service.initialize();
-        console.log('Service initialized and server is running');
-    }
-    catch (error) {
-        console.error('Failed to start service:', error);
-        process.exit(1);
-    }
-}
-start();
+service.initialize().catch(console.error);
