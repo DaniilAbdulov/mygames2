@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${SERVICE_NAME}
+  namespace: ${K8S_NAMESPACE}
+  labels:
+    app: ${SERVICE_NAME}
+    environment: ${ENVIRONMENT}
+spec:
+  replicas: ${REPLICAS}
+  selector:
+    matchLabels:
+      app: ${SERVICE_NAME}
+  template:
+    metadata:
+      labels:
+        app: ${SERVICE_NAME}
+        environment: ${ENVIRONMENT}
+    spec:
+      containers:
+        - name: ${SERVICE_NAME}
+          image: ${IMAGE_TAG}
+          ports:
+            - containerPort: ${PORT}
+          env:
+            - name: NODE_ENV
+              value: ${ENVIRONMENT}
+            - name: SERVICE_NAME
+              value: ${SERVICE_NAME}
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '100m'
+            limits:
+              memory: '${MEMORY_LIMIT}'
+              cpu: '${CPU_LIMIT}'
+          livenessProbe:
+            httpGet:
+              path: ${HEALTH_PATH}
+              port: ${PORT}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: ${READINESS_PATH}
+              port: ${PORT}
+            initialDelaySeconds: 5
+            periodSeconds: 5

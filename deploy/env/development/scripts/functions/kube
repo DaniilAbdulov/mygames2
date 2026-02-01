@@ -1,0 +1,257 @@
+#!/bin/bash
+
+# Kubernetes функции
+
+check_kubectl() {
+  if ! command -v kubectl &> /dev/null; then
+    echo "❌ Ошибка: kubectl не установлен"
+    exit 1
+  fi
+}
+
+cluster_status() {
+  local environment=$1
+  
+  check_kubectl
+  
+  echo "📊 Статус кластера Kubernetes:"
+  echo ""
+  
+  echo "🏷️  Cluster Info:"
+  kubectl cluster-info 2>/dev/null || echo "  Кластер не доступен"
+  echo ""
+  
+  echo "🖥️  Nodes:"
+  kubectl get nodes 2>/dev/null || echo "  Ноды не доступны"
+  echo ""
+  
+  echo "📦 Pods в namespace $K8S_NAMESPACE:"
+  kubectl get pods -n "$K8S_NAMESPACE" 2>/dev/null || echo "  Namespace не существует"
+  echo ""
+  
+  echo "🔗 Services:"
+  kubectl get svc -n "$K8S_NAMESPACE" 2>/dev/null || true
+  echo ""
+  
+  echo "🚀 Deployments:"
+  kubectl get deployments -n "$K8S_NAMESPACE" 2>/dev/null || true
+}
+
+deploy_service() {
+  local service=$1
+  local environment=$2
+  
+  echo "🚀 Деплой сервиса: $service"
+  
+  check_kubectl
+  
+  # Сначала собираем образ если не отключено
+  if [ "${SKIP_BUILD_ON_DEPLOY:-false}" != "true" ]; then
+    build_service "$service" "$environment"
+  fi
+  
+  # Создаем namespace если нужно
+  kubectl create namespace "$K8S_NAMESPACE" 2>/dev/null || true
+  
+  # Применяем манифесты сервиса
+  local manifests_dir="../../../../manifests"
+  
+  # Service
+  if [ -f "$manifests_dir/02-services/${service}-service.yaml" ]; then
+    echo "📡 Применение Service для $service"
+    kubectl apply -f "$manifests_dir/02-services/${service}-service.yaml" -n "$K8S_NAMESPACE"
+  else
+    echo "⚠️  Service манифест не найден: $manifests_dir/02-services/${service}-service.yaml"
+  fi
+  
+  # Deployment
+  if [ -f "$manifests_dir/03-deployments/${service}-deployment.yaml" ]; then
+    echo "⚙️  Применение Deployment для $service"
+    
+    # Экспортируем переменные для envsubst
+    export SERVICE_NAME="$service"
+    export ENVIRONMENT="$environment"
+    export IMAGE_TAG="${CURRENT_IMAGE_TAG:-myapp-$service:latest}"
+    export REPLICAS="${service^^}_REPLICAS"
+    
+    # Заменяем переменные и применяем
+    envsubst < "$manifests_dir/03-deployments/${service}-deployment.yaml" | \
+      kubectl apply -n "$K8S_NAMESPACE" -f -
+  else
+    echo "⚠️  Deployment манифест не найден: $manifests_dir/03-deployments/${service}-deployment.yaml"
+  fi
+  
+  echo "✅ Сервис $service развернут"
+  
+  # Показываем статус
+  kubectl get pods -n "$K8S_NAMESPACE" -l app="$service" 2>/dev/null || true
+}
+
+start_all_services() {
+  local environment=$1
+  
+  echo "▶️  Запуск всех сервисов..."
+  
+  for service in "${SERVICES[@]}"; do
+    echo "  Запуск $service..."
+    
+    # Масштабируем до нужного количества реплик
+    local replicas_var="${service^^}_REPLICAS"
+    local replicas="${!replicas_var:-1}"
+    
+    kubectl scale deployment "$service" \
+      --replicas="$replicas" \
+      -n "$K8S_NAMESPACE" 2>/dev/null || \
+    echo "  ⚠️  Deployment $service не найден, запускаем деплой..."
+    deploy_service "$service" "$environment"
+  done
+  
+  echo "✅ Все сервисы запущены"
+}
+
+stop_all_services() {
+  local environment=$1
+  
+  echo "⏸️  Остановка всех сервисов..."
+  
+  for service in "${SERVICES[@]}"; do
+    echo "  Остановка $service..."
+    kubectl scale deployment "$service" \
+      --replicas=0 \
+      -n "$K8S_NAMESPACE" 2>/dev/null || true
+  done
+  
+  echo "✅ Все сервисы остановлены"
+}
+
+remove_service() {
+  local service=$1
+  local environment=$2
+  
+  echo "🗑️  Удаление сервиса: $service"
+  
+  check_kubectl
+  
+  # Удаляем deployment
+  kubectl delete deployment "$service" -n "$K8S_NAMESPACE" --ignore-not-found=true
+  
+  # Удаляем service
+  kubectl delete service "$service" -n "$K8S_NAMESPACE" --ignore-not-found=true
+  
+  echo "✅ Сервис $service удален"
+}
+
+destroy_cluster() {
+  local environment=$1
+  
+  echo "💥 Удаление кластера..."
+  
+  case "$K8S_CLUSTER_TYPE" in
+    "minikube")
+      minikube delete
+      ;;
+    "kind")
+      kind delete cluster --name "$KIND_CLUSTER_NAME"
+      ;;
+    "k3d")
+      k3d cluster delete "$K3D_CLUSTER_NAME"
+      ;;
+    *)
+      echo "⚠️  Неизвестный тип кластера: $K8S_CLUSTER_TYPE"
+      echo "   Удалите кластер вручную"
+      ;;
+  esac
+  
+  echo "✅ Кластер удален"
+}
+
+show_logs() {
+  local service=$1
+  local environment=$2
+  
+  check_kubectl
+  
+  echo "📋 Логи сервиса $service:"
+  kubectl logs -n "$K8S_NAMESPACE" deployment/"$service" --tail=50 -f
+}
+
+restart_service() {
+  local service=$1
+  local environment=$2
+  
+  echo "🔁 Рестарт сервиса $service"
+  
+  check_kubectl
+  
+  # Перезапускаем поды
+  kubectl rollout restart deployment/"$service" -n "$K8S_NAMESPACE"
+  
+  # Ждем обновления
+  kubectl rollout status deployment/"$service" -n "$K8S_NAMESPACE" --timeout=60s
+  
+  echo "✅ Сервис $service перезапущен"
+}
+
+port_forward() {
+  local service=$1
+  local port_mapping=$2
+  local environment=$3
+  
+  echo "🔌 Проброс портов для $service: $port_mapping"
+  
+  check_kubectl
+  
+  # Запускаем port-forward в фоне
+  kubectl port-forward -n "$K8S_NAMESPACE" deployment/"$service" "$port_mapping" &
+  local pid=$!
+  
+  echo "✅ Port-forward запущен (PID: $pid)"
+  echo "   Остановить: kill $pid"
+}
+
+setup_cluster() {
+  local environment=$1
+  
+  echo "🏗️  Установка кластера Kubernetes..."
+  
+  case "$K8S_CLUSTER_TYPE" in
+    "minikube")
+      echo "  Запуск Minikube..."
+      minikube start \
+        --driver="${MINIKUBE_DRIVER:-docker}" \
+        --cpus="${MINIKUBE_CPUS:-2}" \
+        --memory="${MINIKUBE_MEMORY:-4096}" \
+        --kubernetes-version="${K8S_VERSION:-v1.27.0}"
+      
+      # Включение аддонов
+      minikube addons enable ingress
+      minikube addons enable dashboard
+      
+      echo "✅ Minikube кластер создан"
+      ;;
+      
+    "kind")
+      echo "  Создание Kind кластера..."
+      if ! command -v kind &> /dev/null; then
+        echo "❌ Kind не установлен"
+        return 1
+      fi
+      
+      kind create cluster \
+        --name "${KIND_CLUSTER_NAME:-myapp-cluster}" \
+        --config "${KIND_CONFIG_FILE:-kind-config.yaml}"
+      
+      echo "✅ Kind кластер создан"
+      ;;
+      
+    *)
+      echo "⚠️  Неизвестный тип кластера: $K8S_CLUSTER_TYPE"
+      echo "   Пропускаем создание кластера"
+      ;;
+  esac
+  
+  # Создаем namespace
+  kubectl create namespace "$K8S_NAMESPACE" 2>/dev/null || true
+  
+  echo "✅ Кластер готов к работе"
+}

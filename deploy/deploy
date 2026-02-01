@@ -1,0 +1,184 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+SERVICES_DIR="$PROJECT_ROOT/.."
+
+echo ${SCRIPT_DIR}
+
+source "$SCRIPT_DIR/env/development/scripts/functions/kube"
+source "$SCRIPT_DIR/env/development/scripts/functions/docker"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+action=$1
+service=$2
+environment=${3:-"development"}
+
+if [ -f "$SCRIPT_DIR/env/development/scripts/functions/helpers" ]; then
+  source "$SCRIPT_DIR/env/development/scripts/functions/helpers"
+else
+  echo "⚠️  Файл helpers не найден, некоторые функции могут быть недоступны"
+fi
+
+# Проверяем окружение
+CONFIG_FILE="$SCRIPT_DIR/env/$environment/config/k8s-config.sh"
+if [ ! -f "$CONFIG_FILE" ]; then
+  echo -e "${RED}Конфигурация для '$environment' не найдена${NC}"
+  exit 1
+fi
+source "$CONFIG_FILE"
+
+# Загружаем конфигурацию сервисов
+SERVICES_CONFIG="$SCRIPT_DIR/env/$environment/config/services-config.sh"
+if [ -f "$SERVICES_CONFIG" ]; then
+  source "$SERVICES_CONFIG"
+fi
+
+case "$action" in
+  # Основные команды
+  setup|s)
+    echo -e "${GREEN}Установка кластера k8s...${NC}"
+    setup_cluster "$environment"
+    ;;
+    
+  build|b)
+    if [ -z "$service" ]; then
+      echo -e "${YELLOW}Сборка всех сервисов...${NC}"
+      for svc in "${SERVICES[@]}"; do
+        build_service "$svc" "$environment"
+      done
+    else
+      echo -e "${YELLOW}Сборка сервиса $service...${NC}"
+      build_service "$service" "$environment"
+    fi
+    ;;
+    
+  install|i|deploy)
+    if [ -z "$service" ]; then
+      echo -e "${YELLOW}Деплой всех сервисов...${NC}"
+      for svc in "${SERVICES[@]}"; do
+        deploy_service "$svc" "$environment"
+      done
+    else
+      echo -e "${YELLOW}Деплой сервиса $service...${NC}"
+      deploy_service "$service" "$environment"
+    fi
+    ;;
+    
+  up|start)
+    echo -e "${GREEN}Запуск всех сервисов...${NC}"
+    start_all_services "$environment"
+    ;;
+    
+  down|stop)
+    echo -e "${YELLOW}Остановка всех сервисов...${NC}"
+    stop_all_services "$environment"
+    ;;
+    
+  remove|rm|uninstall)
+    if [ -z "$service" ]; then
+      echo -e "${RED}Укажите сервис: ./deploy rm <service>${NC}"
+      exit 1
+    fi
+    echo -e "${RED}Удаление сервиса $service...${NC}"
+    remove_service "$service" "$environment"
+    ;;
+    
+  destroy|delete-cluster)
+    echo -e "${RED}Удаление кластера...${NC}"
+    destroy_cluster "$environment"
+    ;;
+    
+  # Утилиты
+  ls|list)
+    echo -e "${GREEN}Доступные сервисы:${NC}"
+    printf "%-20s %-10s %-15s\n" "СЕРВИС" "ПОРТ" "РЕПЛИКИ"
+    echo "------------------------------------------------"
+    for svc in "${SERVICES[@]}"; do
+      port_var="${svc^^}_PORT"
+      replicas_var="${svc^^}_REPLICAS"
+      printf "%-20s %-10s %-15s\n" "$svc" "${!port_var:-3000}" "${!replicas_var:-1}"
+    done
+    ;;
+    
+  status|ps)
+    echo -e "${GREEN}Статус кластера:${NC}"
+    cluster_status "$environment"
+    ;;
+    
+  logs|l)
+    if [ -z "$service" ]; then
+      echo -e "${RED}Укажите сервис: ./deploy logs <service>${NC}"
+      exit 1
+    fi
+    show_logs "$service" "$environment"
+    ;;
+    
+  restart|r)
+    if [ -z "$service" ]; then
+      echo -e "${YELLOW}Рестарт всех сервисов...${NC}"
+      for svc in "${SERVICES[@]}"; do
+        restart_service "$svc" "$environment"
+      done
+    else
+      echo -e "${YELLOW}Рестарт сервиса $service...${NC}"
+      restart_service "$service" "$environment"
+    fi
+    ;;
+    
+  generate|gen)
+    echo -e "${BLUE}Генерация манифестов...${NC}"
+    generate_manifests "$environment"
+    ;;
+    
+  port-forward|pf)
+    if [ -z "$service" ]; then
+      echo -e "${RED}Укажите сервис: ./deploy pf <service> [local-port:remote-port]${NC}"
+      exit 1
+    fi
+    local local_port=${3:-"8080:3000"}
+    port_forward "$service" "$local_port" "$environment"
+    ;;
+    
+  help|h|--help)
+    cat << EOF
+${BLUE}Система деплоя микросервисов${NC}
+
+${GREEN}Основные команды:${NC}
+  ./deploy setup                     - Создание кластера
+  ./deploy build [сервис]            - Сборка Docker образа
+  ./deploy install [сервис]          - Деплой в кластер
+  ./deploy up                        - Запуск всех сервисов
+  ./deploy down                      - Остановка всех сервисов
+  ./deploy restart [сервис]          - Рестарт сервиса(ов)
+
+${YELLOW}Утилиты:${NC}
+  ./deploy ls                        - Список сервисов
+  ./deploy status                    - Статус кластера
+  ./deploy logs <сервис>             - Логи сервиса
+  ./deploy pf <сервис> [порт]        - Проброс портов
+  ./deploy generate                  - Генерация манифестов
+
+${RED}Опасные команды:${NC}
+  ./deploy remove <сервис>           - Удаление сервиса
+  ./deploy destroy                   - Удаление кластера
+
+${BLUE}Примеры:${NC}
+  ./deploy build users               # Сборка users
+  ./deploy install games             # Деплой games
+  ./deploy logs users                # Логи users
+  ./deploy pf users 8080:3000        # Проброс порта
+EOF
+    ;;
+    
+  *)
+    echo -e "${RED}Команда не найдена${NC}"
+    echo "Используйте: ./deploy help"
+    exit 1
+    ;;
+esac
