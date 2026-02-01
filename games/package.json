@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "knex": "ts-node --files node_modules/.bin/knex",
     "build": "tsc -p tsconfig.json",
     "build:watch": "tsc -w -p tsconfig.json",
+    "release": "npm run clean && npm install && npm run build && npm run start",
     "start": "node build/index.js",
-    "restart": "npm run build && npm run start",
-    "clean": "rm -rf ./node_modules package-lock.json ./build"
+    "clean": "rm -rf ./node_modules ./build package-lock.json"
   },
   "keywords": [],
   "author": "",

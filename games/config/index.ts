@@ -13,9 +13,9 @@ const development: DevConfig = {
   connect: {
     client: 'pg',
     connection: {
-      host: process.env.PG_HOST,
+      host: process.env.PG_HOST || 'localhost',
       port: 5432,
-      user: process.env.PG_USER,
+      user: process.env.PG_USER || 'postgres',
       password: process.env.PG_PASSWORD,
       database: 'games',
     },
