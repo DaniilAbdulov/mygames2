@@ -221,7 +221,7 @@ setup_cluster() {
         --driver="${MINIKUBE_DRIVER:-docker}" \
         --cpus="${MINIKUBE_CPUS:-2}" \
         --memory="${MINIKUBE_MEMORY:-4096}" \
-        --kubernetes-version="${K8S_VERSION:-v1.27.0}"
+        --kubernetes-version="${K8S_VERSION:-v1.28.0}"
       
       # Включение аддонов
       minikube addons enable ingress

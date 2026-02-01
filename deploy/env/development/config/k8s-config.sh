@@ -5,7 +5,7 @@
 export ENVIRONMENT="development"
 export K8S_NAMESPACE="myapp-dev"
 export K8S_CLUSTER_TYPE="minikube"  # minikube, kind, k3d
-export K8S_VERSION="v1.27.0"
+export K8S_VERSION="v1.28.0"
 
 # Docker registry
 export DOCKER_REGISTRY="localhost:5000"

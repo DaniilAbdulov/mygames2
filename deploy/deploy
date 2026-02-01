@@ -8,6 +8,7 @@ echo ${SCRIPT_DIR}
 
 source "$SCRIPT_DIR/env/development/scripts/functions/kube"
 source "$SCRIPT_DIR/env/development/scripts/functions/docker.sh"
+source "$SCRIPT_DIR/env/development/scripts/functions/postgres.sh"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -92,6 +93,11 @@ case "$action" in
   destroy|delete-cluster)
     echo -e "${RED}Удаление кластера...${NC}"
     destroy_cluster "$environment"
+    ;;
+
+  db)
+    echo -e "Запуск postgres"
+    run_postgres
     ;;
     
   # Утилиты
