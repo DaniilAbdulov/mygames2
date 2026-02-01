@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: games
+  namespace: ${K8S_NAMESPACE}
+spec:
+  selector:
+    app: games
+  ports:
+  - port: 3001
+    targetPort: 3001
+  type: ClusterIP

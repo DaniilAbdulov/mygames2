@@ -2,17 +2,22 @@
 
 # Вспомогательные функции
 
+
+
 generate_manifests() {
   local environment=$1
-  
   echo "📄 Генерация манифестов для окружения: $environment"
+
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  CONFIG_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)/config"
+  ROOT_DIR="$(cd $SCRIPT_DIR/../../../../ && pwd)"
   
   # Загружаем конфигурацию
-  source "../../config/k8s-config.sh"
-  source "../../config/services-config.sh"
+  source "$CONFIG_DIR/k8s-config.sh"
+  source "$CONFIG_DIR/services-config.sh"
   
-  local templates_dir="../../../../templates"
-  local manifests_dir="../../../../manifests"
+  local templates_dir="$ROOT_DIR/templates"
+  local manifests_dir="$ROOT_DIR/manifests"
   
   # Создаем директории
   mkdir -p "$manifests_dir/02-services"

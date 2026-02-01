@@ -7,7 +7,7 @@ SERVICES_DIR="$PROJECT_ROOT/.."
 echo ${SCRIPT_DIR}
 
 source "$SCRIPT_DIR/env/development/scripts/functions/kube"
-source "$SCRIPT_DIR/env/development/scripts/functions/docker"
+source "$SCRIPT_DIR/env/development/scripts/functions/docker.sh"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -19,8 +19,8 @@ action=$1
 service=$2
 environment=${3:-"development"}
 
-if [ -f "$SCRIPT_DIR/env/development/scripts/functions/helpers" ]; then
-  source "$SCRIPT_DIR/env/development/scripts/functions/helpers"
+if [ -f "$SCRIPT_DIR/env/development/scripts/functions/helpers.sh" ]; then
+  source "$SCRIPT_DIR/env/development/scripts/functions/helpers.sh"
 else
   echo "⚠️  Файл helpers не найден, некоторые функции могут быть недоступны"
 fi
