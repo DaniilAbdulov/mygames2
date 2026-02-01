@@ -34,5 +34,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUnusedParameters": true
   },
+  "include": ["**/*.ts"],
   "exclude": ["./build", "./node_modules", "./migrations", "knexfile.js"]
 }
