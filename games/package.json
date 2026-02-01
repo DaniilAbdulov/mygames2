@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "build:watch": "tsc -w -p tsconfig.build.json",
-    "start": "node build/index.js"
+    "build": "tsc -p tsconfig.json",
+    "build:watch": "tsc -w -p tsconfig.json",
+    "start": "node build/index.js",
+    "restart": "npm run build && npm run start",
+    "clean": "rm -rf ./node_modules package-lock.json ./build"
   },
   "keywords": [],
   "author": "",
