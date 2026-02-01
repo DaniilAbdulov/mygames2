@@ -1,4 +1,7 @@
 import type {Knex} from 'knex';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 interface Config {
   connect: Knex.Config;
@@ -10,10 +13,10 @@ const development: DevConfig = {
   connect: {
     client: 'pg',
     connection: {
-      host: 'localhost',
+      host: process.env.PG_HOST || 'localhost',
       port: 5432,
-      user: 'postgres',
-      password: '0896',
+      user: process.env.PG_USER || 'postgres',
+      password: process.env.PG_PASSWORD,
       database: 'users',
     },
     migrations: {
