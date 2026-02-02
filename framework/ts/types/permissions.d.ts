@@ -1,1 +1,0 @@
-export type Permissions = (service:number, ...rights: [number, ...number[]]) => Promise<boolean>;

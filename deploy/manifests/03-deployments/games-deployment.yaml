@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: games
-  namespace: ${K8S_NAMESPACE}
+  namespace: myapp-dev
   labels:
     app: games
     environment: ${ENVIRONMENT}
@@ -20,13 +20,18 @@ spec:
       containers:
         - name: games
           image: ${IMAGE_TAG}
-          ports:
-            - containerPort: 3001
           env:
+            # Основные переменные
             - name: NODE_ENV
               value: ${ENVIRONMENT}
             - name: SERVICE_NAME
               value: games
+
+            - name: POSTGRES_PASSWORD
+              value: '0896'
+            - name: POSTGRES_HOST
+              value: 'postgres'
+
           resources:
             requests:
               memory: '128Mi'
@@ -34,15 +39,3 @@ spec:
             limits:
               memory: '512Mi'
               cpu: '500m'
-          livenessProbe:
-            httpGet:
-              path: C:/Program Files/Git/api/health
-              port: 3001
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: C:/Program Files/Git/api/ready
-              port: 3001
-            initialDelaySeconds: 5
-            periodSeconds: 5

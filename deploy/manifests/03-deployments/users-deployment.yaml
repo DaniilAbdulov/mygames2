@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: users
-  namespace: ${K8S_NAMESPACE}
+  namespace: myapp-dev
   labels:
     app: users
     environment: ${ENVIRONMENT}
@@ -20,29 +20,22 @@ spec:
       containers:
         - name: users
           image: ${IMAGE_TAG}
-          ports:
-            - containerPort: 3000
           env:
+            # Основные переменные
             - name: NODE_ENV
               value: ${ENVIRONMENT}
             - name: SERVICE_NAME
               value: users
+
+            - name: POSTGRES_PASSWORD
+              value: '0896'
+            - name: POSTGRES_HOST
+              value: 'postgres'
+
           resources:
             requests:
               memory: '128Mi'
               cpu: '100m'
             limits:
-              memory: '256Mi'
-              cpu: '200m'
-          livenessProbe:
-            httpGet:
-              path: C:/Program Files/Git/health
-              port: 3000
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: C:/Program Files/Git/ready
-              port: 3000
-            initialDelaySeconds: 5
-            periodSeconds: 5
+              memory: '512Mi'
+              cpu: '500m'

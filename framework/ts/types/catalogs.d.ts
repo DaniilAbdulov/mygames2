@@ -1,1 +1,0 @@
-export type Catalogs = <T = unknown>(catalogName: string) => Promise<T[]>;

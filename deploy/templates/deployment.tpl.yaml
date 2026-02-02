@@ -20,29 +20,22 @@ spec:
       containers:
         - name: ${SERVICE_NAME}
           image: ${IMAGE_TAG}
-          ports:
-            - containerPort: ${PORT}
           env:
+            # Основные переменные
             - name: NODE_ENV
               value: ${ENVIRONMENT}
             - name: SERVICE_NAME
               value: ${SERVICE_NAME}
+
+            - name: POSTGRES_PASSWORD
+              value: '${POSTGRES_PASSWORD}'
+            - name: POSTGRES_HOST
+              value: '${POSTGRES_HOST}'
+
           resources:
             requests:
               memory: '128Mi'
               cpu: '100m'
             limits:
-              memory: '${MEMORY_LIMIT}'
-              cpu: '${CPU_LIMIT}'
-          livenessProbe:
-            httpGet:
-              path: ${HEALTH_PATH}
-              port: ${PORT}
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: ${READINESS_PATH}
-              port: ${PORT}
-            initialDelaySeconds: 5
-            periodSeconds: 5
+              memory: '512Mi'
+              cpu: '500m'

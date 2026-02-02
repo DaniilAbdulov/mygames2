@@ -4,7 +4,7 @@ import {development} from './config';
 
 const service = createService({
   name: 'users-service',
-  port: 3002,
+  port: 3000,
   prefix: '/api/v1',
   routes: [getUser],
   autoDocs: true,

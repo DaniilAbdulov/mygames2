@@ -4,7 +4,7 @@ import {development} from './config';
 
 const service = createService({
   name: 'games-service',
-  port: 3001,
+  port: 3000,
   prefix: '/api/v1',
   routes: [getGames, createGame],
   autoDocs: true,

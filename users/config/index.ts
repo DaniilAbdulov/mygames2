@@ -13,10 +13,10 @@ const development: DevConfig = {
   connect: {
     client: 'pg',
     connection: {
-      host: process.env.PG_HOST || 'localhost',
+      host: process.env.POSTGRES_HOST || 'localhost',
       port: 5432,
       user: 'postgres',
-      password: process.env.PG_PASSWORD,
+      password: process.env.POSTGRES_PASSWORD,
       database: 'users',
     },
     migrations: {

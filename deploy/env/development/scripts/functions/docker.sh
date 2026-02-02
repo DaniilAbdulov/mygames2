@@ -5,39 +5,63 @@
 build_service() {
   local service=$1
   local environment=$2
+
+  NPM_TOKEN=""
   
   echo "📦 Сборка сервиса: $service (окружение: $environment)"
   
-  # Проверяем существование сервиса
-  local service_dir="../../../../$service"  # Из deploy/env/development/scripts/functions
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  ROOT_DIR="$(cd $SCRIPT_DIR/../../../../../ && pwd)"
+  local service_dir="${ROOT_DIR}/$service"
+
   if [ ! -d "$service_dir" ]; then
     echo "❌ Ошибка: сервис $service не найден по пути: $service_dir"
     return 1
   fi
   
-  # Определяем тег
-  local image_tag="myapp-$service:$environment-$(date +%Y%m%d_%H%M%S)"
-  local latest_tag="myapp-$service:latest"
-  
-  # Получаем порт для сервиса
-  local port_var="${service^^}_PORT"
-  local service_port="${!port_var:-3000}"
+  # ФИКСИРОВАННЫЙ тег для каждого окружения
+  local image_tag=""
+  case "$environment" in
+    "development")
+      image_tag="myapp-$service:dev"      # Фиксированный тег для разработки
+      ;;
+    "staging")
+      image_tag="myapp-$service:staging"  # Фиксированный тег для staging
+      ;;
+    "production")
+      # Для production используем версию из package.json
+      local version=$(node -p "require('$service_dir/package.json').version" 2>/dev/null || echo "latest")
+      image_tag="myapp-$service:v$version"
+      ;;
+    *)
+      image_tag="myapp-$service:latest"   # Fallback
+      ;;
+  esac
   
   echo "🔨 Использую Dockerfile: docker/Dockerfile"
   echo "📁 Директория сборки: $service_dir"
+  echo "🏷️  Тег образа: $image_tag"
   
-  # Собираем образ с ЕДИНЫМ Dockerfile
+  # Собираем образ
   docker build \
-    --file "../../docker/Dockerfile" \
+    --file "${ROOT_DIR}/deploy/docker/Dockerfile" \
     --tag "$image_tag" \
-    --tag "$latest_tag" \
     --build-arg SERVICE_NAME="$service" \
     --build-arg NODE_ENV="$environment" \
     --build-arg NPM_TOKEN="$NPM_TOKEN" \
     --label "service=$service" \
     --label "environment=$environment" \
-    --label "version=$(date +%Y%m%d_%H%M%S)" \
+    --label "build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
     "$service_dir"
+  
+  # Определяем тип кластера для локальной разработки
+  local context=$(kubectl config current-context 2>/dev/null || echo "")
+  
+  # Если это Minikube - загружаем образ
+  if [[ "$context" == *"minikube"* ]] && [ "$environment" = "development" ]; then
+    echo "🚚 Загрузка образа в Minikube..."
+    minikube image load "$image_tag"
+  fi
   
   # Сохраняем тег для использования в манифестах
   export CURRENT_IMAGE_TAG="$image_tag"

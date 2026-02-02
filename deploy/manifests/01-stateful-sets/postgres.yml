@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
+  namespace: myapp-dev
 spec:
   serviceName: postgres
   replicas: 1
@@ -13,94 +14,32 @@ spec:
       labels:
         app: postgres
     spec:
-      securityContext:
-        runAsUser: 999
-        runAsGroup: 999
-        fsGroup: 999
       containers:
         - name: postgres
           image: postgres:15
           ports:
             - containerPort: 5432
-              name: postgres
           env:
-            - name: POSTGRES_DB
-              value: 'mygames'
-            - name: POSTGRES_USER
-              value: 'postgres'
             - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: postgres-password
-            - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
-          volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-            - name: postgres-config
-              mountPath: /docker-entrypoint-initdb.d
-          resources:
-            requests:
-              memory: '256Mi'
-              cpu: '250m'
-            limits:
-              memory: '512Mi'
-              cpu: '500m'
-          readinessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - postgres
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 3
-          livenessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - postgres
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-      volumes:
-        - name: postgres-config
-          configMap:
-            name: postgres-config
+              value: '0896'
+            - name: POSTGRES_HOST
+              value: 'postgres'
   volumeClaimTemplates:
     - metadata:
         name: postgres-data
       spec:
         accessModes: ['ReadWriteOnce']
-        storageClassName: 'standard'
         resources:
           requests:
             storage: 5Gi
 ---
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgres-config
----
-apiVersion: v1
 kind: Service
 metadata:
   name: postgres
+  namespace: myapp-dev
 spec:
   selector:
     app: postgres
   ports:
     - port: 5432
-      targetPort: 5432
-  clusterIP: None
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-type: Opaque
-stringData:
-  postgres-password: '0896'
-  app_password: '0896'
